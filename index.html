@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>إرسال لايكات وزوار</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        input {
+            padding: 10px;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>مرحبا بك في نظام زيادة الإعجابات والزوار!</h1>
+    <p>اختر الخيار الذي تريده:</p>
+    <form action="/send_like" method="post" style="display: inline;">
+        <label for="uid_like">زيادة الإعجابات (UID):</label>
+        <input type="text" id="uid_like" name="uid" required>
+        <button type="submit">زيادة الإعجابات</button>
+    </form>
+    <form action="/send_visit" method="post" style="display: inline;">
+        <label for="uid_visit">زيادة الزوار (UID):</label>
+        <input type="text" id="uid_visit" name="uid" required>
+        <button type="submit">زيادة الزوار</button>
+    </form>
+</body>
+</html>

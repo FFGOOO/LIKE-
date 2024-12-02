@@ -1,0 +1,92 @@
+package com.example.demo;
+
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@RestController
+public class PlayerController {
+
+    private static final String LIKE_API_URL = "https://mahmoud-aheqh0b3csgagdf4.centralus-01.azurewebsites.net/request?api_key=mahmoud7532000&id=%s&type=likes";
+    private static final String VISITOR_API_URL = "https://xaz-ff-free-api-ird6.onrender.com/visut_api/%s";
+    private static final String API_URL = "https://xaz222-mc03.onrender.com/get_player_info/";
+
+    private Map<String, Long> lastLikeTime = new HashMap<>();
+
+    @GetMapping("/")
+    public ModelAndView index() {
+        return new ModelAndView("index");
+    }
+
+    @PostMapping("/send_like")
+    public String sendLike(@RequestParam String uid) {
+        if (validateUid(uid)) {
+            String playerInfo = fetchPlayerInfo(uid);
+            if (playerInfo != null) {
+                if (canLike(uid)) {
+                    String response = new RestTemplate().getForObject(String.format(LIKE_API_URL, uid), String.class);
+                    return handleLikeResponse(response, uid, playerInfo);
+                } else {
+                    return "هذا الـ ID تم إضافة لايكات له مؤخرًا. يجب الانتظار 24 ساعة قبل إضافته مرة أخرى.";
+                }
+            } else {
+                return "❌ لم يتم العثور على معلومات اللاعب. تأكد من صحة الـ UID.";
+            }
+        } else {
+            return "الرجاء إدخال UID صحيح.";
+        }
+    }
+
+    @PostMapping("/send_visit")
+    public String sendVisit(@RequestParam String uid) {
+        if (validateUid(uid)) {
+            String playerInfo = fetchPlayerInfo(uid);
+            if (playerInfo != null) {
+                String response = new RestTemplate().getForObject(String.format(VISITOR_API_URL, uid), String.class);
+                return handleVisitResponse(response, uid, playerInfo);
+            } else {
+                return "❌ لم يتم العثور على معلومات اللاعب. تأكد من صحة الـ UID.";
+            }
+        } else {
+            return "الرجاء إدخال UID صحيح.";
+        }
+    }
+
+    private boolean validateUid(String uid) {
+        return uid.matches("\\d{8,12}");
+    }
+
+    private String fetchPlayerInfo(String uid) {
+        RestTemplate restTemplate = new RestTemplate();
+        try {
+            return restTemplate.getForObject(API_URL + uid, String.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private boolean canLike(String uid) {
+        long currentTime = System.currentTimeMillis() / 1000;
+        return !lastLikeTime.containsKey(uid) || (currentTime - lastLikeTime.get(uid)) >= 86400;
+    }
+
+    private String handleLikeResponse(String response, String uid, String playerInfo) {
+        if (response != null) {
+            lastLikeTime.put(uid, System.currentTimeMillis() / 1000);
+            return String.format("تم إرسال الإعجابات إلى UID: %s بنجاح! 🎉<br>معلومات اللاعب: %s<br>", uid, playerInfo);
+        } else {
+            return String.format("❌ فشل في إرسال الإعجابات إلى UID: %s. يرجى المحاولة مرة أخرى لاحقًا.", uid);
+        }
+    }
+
+    private String handleVisitResponse(String response, String uid, String playerInfo) {
+        if (response != null) {
+            return String.format("تم إرسال طلب الزوار إلى UID: %s بنجاح! 🎉<br>معلومات اللاعب: %s<br>", uid, playerInfo);
+        } else {
+            return String.format("❌ فشل في إرسال طلب الزوار إلى UID: %s. يرجى المحاولة مرة أخرى لاحقًا.", uid);
+        }
+    }
+}
